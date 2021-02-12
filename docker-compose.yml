@@ -2,8 +2,7 @@ version: "3.8"
 
 services:
   mongo:
-    container_name: mongo
-    image: mongo
+    container_name: ${MONGO_SERVICE_NAME}
     build: ./mongo
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
@@ -20,10 +19,26 @@ services:
     build: ./app
     environment: 
       APP_PORT: ${APP_PORT}
+      MONGO_SERVICE_NAME: ${MONGO_SERVICE_NAME}
     ports:
       - ${APP_PORT}:${APP_PORT}
     volumes:
       - app-data:/opt/armut/app/data
+    networks:
+      - backend
+    restart: always
+  dbprovider:
+    container_name: dbprovider
+    build: ./dbprovider
+    environment: 
+      DBPROVIDER_PORT: ${DBPROVIDER_PORT}
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+      MONGO_DATABASE_NAME: ${MONGO_DATABASE_NAME}
+      MONGO_PORT: ${MONGO_PORT}
+      MONGO_SERVICE_NAME: ${MONGO_SERVICE_NAME}
+    ports:
+      - ${DBPROVIDER_PORT}:${DBPROVIDER_PORT}
     networks:
       - backend
     restart: always
