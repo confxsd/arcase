@@ -13,7 +13,7 @@ app.use("/user", routes.user);
 app.use("/message", routes.message);
 
 app.use("*", function (req, res) {
-    res.status(404).send("Invalid request");
+    res.status(404).send("Not found");
 });
 
 app.listen(PORT, () => {

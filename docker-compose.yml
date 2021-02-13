@@ -18,8 +18,11 @@ services:
     container_name: app
     build: ./app
     environment: 
+      APP_SECRETKEY: ${APP_SECRETKEY}
       APP_PORT: ${APP_PORT}
       MONGO_SERVICE_NAME: ${MONGO_SERVICE_NAME}
+      DBPROVIDER_SERVICE_NAME: ${DBPROVIDER_SERVICE_NAME}
+      DBPROVIDER_PORT: ${DBPROVIDER_PORT}
     ports:
       - ${APP_PORT}:${APP_PORT}
     volumes:
@@ -28,7 +31,7 @@ services:
       - backend
     restart: always
   dbprovider:
-    container_name: dbprovider
+    container_name: ${DBPROVIDER_SERVICE_NAME}
     build: ./dbprovider
     environment: 
       DBPROVIDER_PORT: ${DBPROVIDER_PORT}

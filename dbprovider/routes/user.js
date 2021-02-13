@@ -34,7 +34,7 @@ router.post("/", async (req, res) => {
             null
         );
         return res.status(201).send({
-            error: "invalid body",
+            error: null,
             data: r.insertedId,
         });
     } catch (error) {
@@ -50,6 +50,17 @@ router.post("/", async (req, res) => {
             error: "Error when adding user",
             data: null,
         });
+    }
+});
+
+
+router.get("/all", async (req, res) => {
+    try {
+        const users = await db.getUsers();
+        return res.status(200).send(users);
+    } catch (error) {
+        console.log(error);
+        res.status(500).send("Error when getting users.");
     }
 });
 
@@ -73,12 +84,18 @@ router.get("/:id", async (req, res) => {
 
 router.get("/", async (req, res) => {
     try {
-        const users = await db.getUsers();
-        return res.status(200).send(users);
+        const username = req.query.username;
+        if (!username) {
+            console.log("provide username");
+            return res.status(400).send("provide username");
+        }
+        const user = await db.getUserByUsername(username);
+        return res.status(200).send(user);
     } catch (error) {
         console.log(error);
         res.status(500).send("Error when getting users.");
     }
 });
+
 
 module.exports = router;

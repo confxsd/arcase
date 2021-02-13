@@ -62,6 +62,14 @@ module.exports = {
             throw error;
         }
     },
+    getUserByUsername: async function (username) {
+        try {
+            const db = await connect();
+            return await db.collection(docNames.user).findOne({ username });
+        } catch (error) {
+            throw error;
+        }
+    },
     getUsers: async function (query) {
         try {
             const db = await connect();
