@@ -20,7 +20,7 @@ This project provides services which users can register/login and send message t
 
 ### [Why is it scalable?](#why-is-it-scalable)
 
-To make it scalable, I both separated mongo service and `dbprovider service` from app to make app service isolated. `app service` authenticates and handles business logic. It makes requests to get resources from dbprovider. dbprovider acts as an interface service for database. dbprovider uses `mongo service` to provide resources to clients. It may seem reduntant but it helps us to change our database engine without breaking our app. Also other services (if developed in the future) can also use database. I planned to implement it as auth, user and message services at first but later on I thought it will be quicker to implement an app service to handle multiple functionalities to met acceptance criterias.
+To make it scalable, I both separated mongo service and `dbprovider service` from app to make app service isolated. `app service` authenticates and handles business logic. It makes requests to get resources from dbprovider. dbprovider acts as an interface service for database. dbprovider uses `mongo service` to provide resources to clients. It may seem reduntant but it helps us to change our database engine without breaking our app. Also other services (if developed in the future) can also use database. I planned to implement it as auth, user and message services at first but later on I thought it will be quicker to implement an app service to handle multiple functionalities and to met acceptance criterias.
 
 Also while writing the code, I tried to apply Clean Code and SOLID principles. So it is easy to add new features for future development with less bug.
 
@@ -59,9 +59,9 @@ This project can be deployed on a host by using docker-compose commands. All ser
 | -------- | --------------------------------------- | ------------------------ |
 | **POST** | **/auth/register**                      | Register user            |
 | **POST** | **/auth/login**                         | Login user               |
+| **GET**  | **/api/user/:id/message?type=incoming** | Get incoming messages    |
 | **POST** | **/api/user/:id/message**               | Send message             |
 | **PUT**  | **/api/user/:id/block**                 | Block user with username |
-| **GET**  | **/api/user/:id/message?type=incoming** | Get incoming messages    |
 
 Also **dbprovider** has its own API but I didn't include here.
 
@@ -73,6 +73,6 @@ In this project, a logger module which uses `winston` package provides log persi
 
 `2021-02-12T21:57:57.719Z | /api/user | 500 | A message couldn't send. request={safe(req.body)} | {error.stack}`
 
-There is a duplication at logger module (is used in both app and dbprovider services) but it can be solved by deploying the logger module as a package so it can be used by installing via package manager (such as npm). 
+There is a duplication at logger module (is used in both app and dbprovider services) but it can be solved by deploying the logger module as a package so it is possible to use it by installing via a package manager (currently npm). 
 
 ### [Tests](#tests)
