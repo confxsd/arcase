@@ -16,7 +16,7 @@ const logger = createLogger({
 
 module.exports = {
     log: function (level, route, action, status, message, error) {
-        const errorStr = "";
+        let errorStr = "";
         if (error) {
             errorStr = error.stack;
         }
