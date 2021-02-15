@@ -24,5 +24,5 @@ app.use("*", function (req, res) {
 });
 
 app.listen(PORT, () => {
-    console.log(`dbprovider is listening on PORT: ${PORT}`);
+    console.log(`DBPROVIDER is listening on PORT: ${PORT}`);
 });

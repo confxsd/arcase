@@ -24,7 +24,7 @@ const doLogin = async (req, res) => {
             });
         }
         const user = await db.getUserByUsername(username);
-        console.log(user);
+        
         if (!user) {
             logger.log(
                 "error",

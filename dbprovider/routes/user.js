@@ -63,7 +63,6 @@ router.get("/all", async (req, res) => {
             data: users,
         });
     } catch (error) {
-        console.log(error);
         res.status(500).send("Error when getting users.");
     }
 });
@@ -86,7 +85,6 @@ router.get("/:id", async (req, res) => {
             });
         }
         const user = await db.getUserById(id);
-        console.log("DEBUG", user);
         if (!user) {
             logger.log(
                 "error",
@@ -225,7 +223,6 @@ router.put("/:id/block", async (req, res) => {
             });
         }
     } catch (error) {
-        console.log(error);
         logger.log(
             "info",
             `${routeName}/:id/block`,
@@ -301,7 +298,6 @@ router.post("/:id/message", async (req, res) => {
             data: r,
         });
     } catch (error) {
-        console.log(error);
         logger.log(
             "error",
             `${routeName}/:id/block`,

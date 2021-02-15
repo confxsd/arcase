@@ -50,7 +50,6 @@ router.get("/all", async (req, res) => {
         const messages = await db.getAllMessages();
         res.status(200).send(messages);
     } catch (error) {
-        console.log(error);
         res.status(500).send("Error when getting messages.");
     }
 });
