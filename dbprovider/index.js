@@ -9,11 +9,18 @@ const app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
+app.get("/", (req, res) => {
+    res.send("Dbprovider is alive");
+});
+
 app.use("/user", routes.user);
 app.use("/message", routes.message);
 
 app.use("*", function (req, res) {
-    res.status(404).send("Not found");
+    res.status(404).send({
+        error: "Not found",
+        data: null,
+    });
 });
 
 app.listen(PORT, () => {

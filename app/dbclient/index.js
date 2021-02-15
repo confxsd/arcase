@@ -15,7 +15,15 @@ module.exports = {
                     username,
                 },
             });
-            return r.data;
+            return r.data.data;
+        } catch (error) {
+            throw error;
+        }
+    },
+    getUserById: async function (id) {
+        try {
+            const r = await ax.get(`/user/${id}`);
+            return r.data.data;
         } catch (error) {
             throw error;
         }
@@ -23,29 +31,39 @@ module.exports = {
     createUser: async function (user) {
         try {
             const r = await ax.post("/user", user);
-            return r.data;
+            return r.data.data;
         } catch (error) {
             throw error;
         }
     },
-    sendMessage: async function (fromId, toId, text) {
+    sendMessage: async function (fromId, toUsername, text) {
         try {
-            const r = await ax.post("/message", {
-                fromId,
-                toId,
+            const r = await ax.post(`/user/${fromId}/message`, {
+                toUsername,
                 text,
             });
-            return r.data;
+            return r.data.data;
         } catch (error) {
             throw error;
         }
     },
-    getMessagesSentToUser: async function (userId) {
+    getIncomingMessages: async function (toId) {
         try {
-            const r = await ax.get("/message", {
+            const r = await ax.get(`/message`, {
                 params: {
-                    userId,
+                    toId,
                 },
+            });
+            console.log(toId, r.data);
+            return r.data.data;
+        } catch (error) {
+            throw error;
+        }
+    },
+    block: async function (userId, blockedUser) {
+        try {
+            const r = await ax.put(`/user/${userId}/block`, {
+                blockedUser,
             });
             return r.data;
         } catch (error) {

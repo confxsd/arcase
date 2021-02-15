@@ -43,7 +43,7 @@ module.exports = {
             if (r.insertedCount != 1) {
                 throw Error("Couldn't add user");
             }
-            return r;
+            return r.insertedId;
         } catch (error) {
             throw error;
         }
@@ -51,13 +51,10 @@ module.exports = {
     getUserById: async function (id) {
         try {
             const db = await connect();
-            if (id) {
-                return await db
-                    .collection(docNames.user)
-                    .findOne({ _id: ObjectID(id) });
-            } else {
-                return await db.collection(docNames.user).find({}).toArray();
-            }
+            let r = await db
+                .collection(docNames.user)
+                .findOne({ _id: ObjectID(id) });
+            return r;
         } catch (error) {
             throw error;
         }
@@ -65,7 +62,8 @@ module.exports = {
     getUserByUsername: async function (username) {
         try {
             const db = await connect();
-            return await db.collection(docNames.user).findOne({ username });
+            const r = await db.collection(docNames.user).findOne({ username });
+            return r;
         } catch (error) {
             throw error;
         }
@@ -73,21 +71,22 @@ module.exports = {
     getUsers: async function (query) {
         try {
             const db = await connect();
-            if (query) {
-                return await db.collection(docNames.user).find(query);
-            } else {
-                return await db.collection(docNames.user).find({}).toArray();
-            }
+            let r = await db.collection(docNames.user).find({}).toArray();
+            return r;
         } catch (error) {
             throw error;
         }
     },
-    createMessage: async function (fromId, toId, text, timestamp) {
+    createMessage: async function (fromId, toUsername, text, timestamp) {
         try {
             const db = await connect();
+            const toUser = await this.getUserByUsername(toUsername);
+            if (!toUser) {
+                throw Error("No user found with username");
+            }
             const messageToAdd = {
                 from: ObjectID(fromId),
-                to: ObjectID(toId),
+                to: ObjectID(toUser._id),
                 text,
                 timestamp,
             };
@@ -97,7 +96,7 @@ module.exports = {
             if (r.insertedCount != 1) {
                 throw Error("Couldn't add message");
             }
-            return r;
+            return r.insertedId;
         } catch (error) {
             throw error;
         }
@@ -105,7 +104,8 @@ module.exports = {
     getAllMessages: async function () {
         try {
             const db = await connect();
-            return await db.collection(docNames.message).find({}).toArray();
+            const r = await db.collection(docNames.message).find({}).toArray();
+            return r;
         } catch (error) {
             throw error;
         }
@@ -113,10 +113,53 @@ module.exports = {
     getMessagesSentToUser: async function (toId) {
         try {
             const db = await connect();
-            return await db
+            const r = await db
                 .collection(docNames.message)
                 .find({ to: ObjectID(toId) })
                 .toArray();
+            const messages = Promise.all(
+                await r.map(async (m) => {
+                    const fromUser = await this.getUserById(m.from);
+                    return {
+                        from: fromUser.username,
+                        text: m.text,
+                        timestamp: m.timestamp,
+                    };
+                })
+            );
+            return messages;
+        } catch (error) {
+            throw error;
+        }
+    },
+    blockUser: async function (userId, blockedId) {
+        try {
+            if (userId == blockedId) {
+                let error = Error("Cannot block himself/herself");
+                error.code = 0;
+                throw error;
+            }
+            const db = await connect();
+            const r = await db.collection(docNames.user).updateOne(
+                { _id: ObjectID(userId) },
+                {
+                    $addToSet: {
+                        blocked: ObjectID(blockedId),
+                    },
+                },
+                { upsert: true }
+            );
+            if (r.modifiedCount === 0 && r.matchedCount === 1) {
+                let error = Error("User already blocked");
+                error.code = 1;
+                throw error;
+            }
+            if (r.matchedCount !== 1) {
+                let error = Error("No user to block");
+                error.code = 2;
+                throw error;
+            }
+            return blockedId;
         } catch (error) {
             throw error;
         }
