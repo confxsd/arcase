@@ -1,6 +1,7 @@
 const logger = require("../winstonLogger");
 const db = require("../dbclient");
 const validators = require("../validators");
+const { safeResponseStr } = require("../util");
 
 const doLogin = async (req, res) => {
     const routeName = "/auth/login";
@@ -13,7 +14,7 @@ const doLogin = async (req, res) => {
                 routeName,
                 "POST",
                 400,
-                `Invalid Login: Bad request. request=${JSON.stringify(
+                `Invalid Login: Bad request. request=${safeResponseStr(
                     req.body
                 )}`,
                 null
@@ -24,14 +25,14 @@ const doLogin = async (req, res) => {
             });
         }
         const user = await db.getUserByUsername(username);
-        
+
         if (!user) {
             logger.log(
                 "error",
                 routeName,
                 "POST",
                 401,
-                `Invalid Login: No such user. request=${JSON.stringify(
+                `Invalid Login: No such user. request=${safeResponseStr(
                     req.body
                 )}`,
                 null
@@ -48,7 +49,7 @@ const doLogin = async (req, res) => {
                 routeName,
                 "POST",
                 401,
-                `Invalid Login: Password didn't match. request=${JSON.stringify(
+                `Invalid Login: Password didn't match. request=${safeResponseStr(
                     req.body
                 )}`,
                 null
@@ -58,18 +59,21 @@ const doLogin = async (req, res) => {
                 data: null,
             });
         }
+
+        // set user session
         req.session.user = { id: user._id, username };
+
         logger.log(
             "info",
             routeName,
             "POST",
             200,
-            `Login: Success. request=${JSON.stringify(req.body)}`,
+            `Login: Success. request=${safeResponseStr(req.body)}`,
             null
         );
         return res.status(200).send({
             error: null,
-            data: user,
+            data: user._id,
         });
     } catch (error) {
         logger.log(
@@ -77,7 +81,7 @@ const doLogin = async (req, res) => {
             routeName,
             "POST",
             500,
-            `Login error. request=${JSON.stringify(req.body)}`,
+            `Login error. request=${safeResponseStr(req.body)}`,
             error
         );
         res.status(500).send({
@@ -98,10 +102,13 @@ const create = async (req, res) => {
                 routeName,
                 "POST",
                 400,
-                `Invalid request. request=${JSON.stringify(req.body)}`,
+                `Bad request. request=${safeResponseStr(req.body)}`,
                 null
             );
-            return res.status(400).send("Invalid request");
+            return res.status(400).send({
+                error: "Bad request",
+                data: null,
+            });
         }
 
         // validate before registering
@@ -113,8 +120,8 @@ const create = async (req, res) => {
                 routeName,
                 "POST",
                 400,
-                `Bad request. request=${JSON.stringify(req.body)}`,
-                null
+                `Bad request. request=${safeResponseStr(req.body)}`,
+                error
             );
             return res.status(400).send({
                 error: error.message,
@@ -130,11 +137,11 @@ const create = async (req, res) => {
                 routeName,
                 "POST",
                 409,
-                `Username already exists. request=${JSON.stringify(req.body)}`,
+                `Username already exists. request=${safeResponseStr(req.body)}`,
                 null
             );
             return res.status(409).send({
-                error: "Username already exist",
+                error: "Username already exists",
                 data: null,
             });
         }
@@ -146,7 +153,7 @@ const create = async (req, res) => {
             routeName,
             "POST",
             201,
-            `User registered. request=${JSON.stringify(req.body)}`,
+            `User registered. request=${safeResponseStr(req.body)}`,
             null
         );
         return res.status(201).send({
@@ -154,18 +161,39 @@ const create = async (req, res) => {
             data: r,
         });
     } catch (error) {
-        logger.log(
-            "info",
-            routeName,
-            "POST",
-            500,
-            `Error when user register. request=${JSON.stringify(req.body)}`,
-            error
-        );
-        return res.status(500).send({
-            error: "Error when user register",
-            data: null,
-        });
+        try {
+            if (error.response) {
+                const resStatus = error.response.status;
+                const resError = error.response.data.error;
+                logger.log(
+                    "error",
+                    routeName,
+                    "POST",
+                    resStatus,
+                    `${resError}. request=${safeResponseStr(req.body)}`,
+                    error
+                );
+                res.status(resStatus).send({
+                    error: resError,
+                    data: null,
+                });
+            } else throw error;
+        } catch (error) {
+            logger.log(
+                "error",
+                routeName,
+                "POST",
+                500,
+                `Error while user register. request=${safeResponseStr(
+                    req.body
+                )}`,
+                error
+            );
+            res.status(500).send({
+                error: "Error while user register",
+                data: null,
+            });
+        }
     }
 };
 
@@ -183,7 +211,7 @@ const block = async (req, res) => {
                 routeName,
                 "PUT",
                 404,
-                `User to block not found. request=${JSON.stringify(req.body)}`,
+                `User to block not found. request=${safeResponseStr(req.body)}`,
                 null
             );
             return res.status(404).send({
@@ -198,7 +226,7 @@ const block = async (req, res) => {
                 routeName,
                 "PUT",
                 400,
-                `Invalid request. request=${JSON.stringify(req.body)}`,
+                `Invalid request. request=${safeResponseStr(req.body)}`,
                 null
             );
             return res.status(400).send({
@@ -213,7 +241,7 @@ const block = async (req, res) => {
             routeName,
             "PUT",
             200,
-            `User blocked. userId=${userId}. request=${JSON.stringify(
+            `User blocked. userId=${userId}. request=${safeResponseStr(
                 req.body
             )}`,
             null
@@ -232,10 +260,10 @@ const block = async (req, res) => {
                     routeName,
                     "PUT",
                     resStatus,
-                    `${resError}. request=${JSON.stringify(req.body)}`,
+                    `${resError}. request=${safeResponseStr(req.body)}`,
                     error
                 );
-                res.status(500).send({
+                res.status(resStatus).send({
                     error: resError,
                     data: null,
                 });
@@ -246,7 +274,9 @@ const block = async (req, res) => {
                 routeName,
                 "PUT",
                 500,
-                `Error when blocking user. request=${JSON.stringify(req.body)}`,
+                `Error when blocking user. request=${safeResponseStr(
+                    req.body
+                )}`,
                 error
             );
             res.status(500).send({
@@ -254,31 +284,6 @@ const block = async (req, res) => {
                 data: null,
             });
         }
-    }
-};
-const get = async (req, res) => {
-    const routeName = "/api/user";
-    try {
-        const userId = req.session.user.id;
-        const user = await db.getUserById(userId);
-
-        res.status(200).send({
-            error: "Error when getting user",
-            data: null,
-        });
-    } catch (error) {
-        logger.log(
-            "error",
-            routeName,
-            "GET",
-            500,
-            `Error when getting user. request=${JSON.stringify(req.body)}`,
-            error
-        );
-        res.status(500).send({
-            error: "Error when getting user",
-            data: null,
-        });
     }
 };
 
@@ -294,7 +299,7 @@ const sendMessage = async (req, res) => {
                 routeName,
                 "POST",
                 400,
-                `Invalid request. request=${JSON.stringify(req.body)}`,
+                `Invalid request. request=${safeResponseStr(req.body)}`,
                 null
             );
             return res.status(400).send({
@@ -309,7 +314,7 @@ const sendMessage = async (req, res) => {
             routeName,
             "POST",
             201,
-            `Message created. request=${JSON.stringify(req.body)}`,
+            `Message created. request=${safeResponseStr(req.body)}`,
             null
         );
         return res.status(201).send({
@@ -326,10 +331,10 @@ const sendMessage = async (req, res) => {
                     routeName,
                     "POST",
                     resStatus,
-                    `${resError}. request=${JSON.stringify(req.body)}`,
+                    `${resError}. request=${safeResponseStr(req.body)}`,
                     error
                 );
-                return res.status(500).send({
+                return res.status(resStatus).send({
                     error: resError,
                     data: null,
                 });
@@ -340,7 +345,7 @@ const sendMessage = async (req, res) => {
                 routeName,
                 "POST",
                 500,
-                `Error while sending message. request=${JSON.stringify(
+                `Error while sending message. request=${safeResponseStr(
                     req.body
                 )}`,
                 error
@@ -365,7 +370,7 @@ const getMessages = async (req, res) => {
                 routeName,
                 "GET",
                 403,
-                `Forbidden request to resource. request=${JSON.stringify(
+                `Forbidden request to resource. request=${safeResponseStr(
                     req.body
                 )}`,
                 null
@@ -381,7 +386,7 @@ const getMessages = async (req, res) => {
                 routeName,
                 "GET",
                 400,
-                `Bad request. request=${JSON.stringify(req.body)}`,
+                `Bad request. request=${safeResponseStr(req.body)}`,
                 null
             );
             return res.status(400).send({
@@ -413,29 +418,48 @@ const getMessages = async (req, res) => {
                     routeName,
                     "GET",
                     resStatus,
-                    `${resError}. request=${JSON.stringify(req.body)}`,
+                    `${resError}. request=${safeResponseStr(req.body)}`,
                     error
                 );
-                return res.status(500).send({
+                return res.status(resStatus).send({
                     error: resError,
                     data: null,
                 });
             } else throw error;
         } catch (error) {
-            logger.log(
-                "error",
-                routeName,
-                "POST",
-                500,
-                `Error while getting incoming messages. request=${JSON.stringify(
-                    req.body
-                )}`,
-                error
-            );
-            res.status(500).send({
-                error: "Error while getting incoming messages",
-                data: null,
-            });
+            try {
+                if (error.response) {
+                    const resStatus = error.response.status;
+                    const resError = error.response.data.error;
+                    logger.log(
+                        "error",
+                        routeName,
+                        "GET",
+                        resStatus,
+                        `${resError}. request=${safeResponseStr(req.body)}`,
+                        error
+                    );
+                    res.status(resStatus).send({
+                        error: resError,
+                        data: null,
+                    });
+                } else throw error;
+            } catch (error) {
+                logger.log(
+                    "error",
+                    routeName,
+                    "GET",
+                    500,
+                    `Error while getting incoming messages. request=${safeResponseStr(
+                        req.body
+                    )}`,
+                    error
+                );
+                res.status(500).send({
+                    error: "Error while getting incoming messages",
+                    data: null,
+                });
+            }
         }
     }
 };
@@ -443,7 +467,6 @@ module.exports = {
     doLogin,
     create,
     block,
-    get,
     sendMessage,
     getMessages,
 };

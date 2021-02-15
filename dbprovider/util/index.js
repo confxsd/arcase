@@ -3,9 +3,6 @@ module.exports = {
         if (!reciever.blocked) {
             return true;
         }
-        if (reciever.blocked.indexOf(senderId)) {
-            return false;
-        }
-        return true;
+        return reciever.blocked.indexOf(senderId) === -1;
     },
 };

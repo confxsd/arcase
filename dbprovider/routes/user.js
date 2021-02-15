@@ -133,7 +133,7 @@ router.get("/", async (req, res) => {
                 ""
             );
             return res.status(400).send({
-                error: "Invalid credentials",
+                error: "Bad request",
                 data: null,
             });
         }
@@ -260,8 +260,7 @@ router.post("/:id/message", async (req, res) => {
                 data: null,
             });
         }
-
-        if (!fromId || !toUsername || !text || fromId === reciever._id) {
+        if (!fromId || !toUsername || !text || fromId == reciever._id) {
             logger.log(
                 "error",
                 `${routeName}/:id/message`,
