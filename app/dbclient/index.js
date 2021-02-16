@@ -1,3 +1,4 @@
+/* istanbul ignore file */
 const axios = require("axios");
 const { DBPROVIDER_SERVICE_NAME, DBPROVIDER_PORT } = process.env;
 

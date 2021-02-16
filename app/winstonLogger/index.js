@@ -1,3 +1,4 @@
+/* istanbul ignore file */
 const { createLogger, format, transports } = require("winston");
 const utils = require("./utils");
 

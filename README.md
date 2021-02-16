@@ -77,4 +77,4 @@ There is a duplication at logger module (is used in both app and dbprovider serv
 
 ### [Tests](#tests)
 
-In this project Jest package is used to write unit tests. Currently tests are written only for the ```app service```. In the app service, run ```npm test``` to start testing and also ```npm run test-coverage``` to view coverage reports.
+In this project Jest package is used to write unit tests. Currently tests are written only for the ```app service```, dbprovider service has a similar structure so I skipped it. In the app service folder, run ```npm test``` to start testing and also ```npm run test-coverage``` to view coverage reports.
