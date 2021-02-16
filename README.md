@@ -76,3 +76,5 @@ In this project, a logger module which uses `winston` package provides log persi
 There is a duplication at logger module (is used in both app and dbprovider services) but it can be solved by deploying the logger module as a package so it is possible to use it by installing via a package manager (currently npm). 
 
 ### [Tests](#tests)
+
+In this project Jest package is used to write unit tests. Currently tests are written only for the ```app service```. In the app service, run ```npm test``` to start testing and also ```npm run test-coverage``` to view coverage reports.
