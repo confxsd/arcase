@@ -40,6 +40,8 @@ This project designed to run as docker containers. It uses **docker-compose.yml*
 -   **dbprovider**: provides db. Currently uses mongo service. Acts as a db interface.
 -   **mongo**: runs mongo db.
 
+Currently sessions are on ram (express session module) and passwords are not hashed (not the best practise).
+
 ## [What is the deployment process?](#what-is-the-deployment-process)
 
 This project can be deployed on a host by using docker-compose commands. All services are isolated and can communicate through a network (currently on the same host). Run provided `./init.sh` to run project with docker-compose.
